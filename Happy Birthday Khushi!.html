@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Happy Birthday Khushi!</title>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+2:wght@500;800&family=Pacifico&display=swap" rel="stylesheet">
+<style>
+:root{--bg1:#ffd6e8;--bg2:#e9d5ff;--ink:#3b1030;--card:#fff;--pink:#e63e8a;--gold:#f6b93b;--plum:#6a1b9a;--mute:#7a4a6a;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media (prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg1:#3a1034;--bg2:#1f1147;--ink:#ffe8f2;--card:#4a1a42;--mute:#e8b5d2}}
+:root[data-theme="dark"]{--bg1:#3a1034;--bg2:#1f1147;--ink:#ffe8f2;--card:#4a1a42;--mute:#e8b5d2}
+*{box-sizing:border-box}
+html,body{margin:0}
+body{background:linear-gradient(160deg,var(--bg1),var(--bg2)) fixed;background-color:var(--bg1);color:var(--ink);font-family:"Baloo 2","Trebuchet MS",system-ui,sans-serif;text-align:center;padding:0 16px 56px;min-height:100vh;overflow-x:hidden}
+.bunting{display:flex;justify-content:center;margin:0 -16px;overflow:hidden}
+.bunting i{width:0;height:0;border-left:22px solid transparent;border-right:22px solid transparent;border-top:38px solid var(--c);margin:0 2px;transform-origin:top;animation:sway 3s ease-in-out infinite alternate}
+.bunting i:nth-child(even){animation-delay:-1.5s}
+@keyframes sway{to{transform:rotate(7deg)}}
+h1{font-family:Pacifico,cursive;font-weight:400;font-size:clamp(2.2rem,10vw,3.4rem);line-height:1.15;margin:18px 0 4px;color:var(--pink);text-shadow:3px 3px 0 var(--gold)}
+.name{font-size:clamp(2.6rem,13vw,4.4rem)}
+p{margin:6px auto;max-width:34ch;line-height:1.45;color:var(--mute);font-weight:500}
+.cake{font-size:3rem;animation:bob 1.6s ease-in-out infinite}
+@keyframes bob{50%{transform:translateY(-8px) rotate(-4deg)}}
+.grid{display:grid;grid-template-columns:1fr 1fr;gap:16px;max-width:420px;margin:22px auto;position:relative;z-index:2}
+.card{position:relative;aspect-ratio:1;border-radius:20px;background:var(--card);border:3px solid var(--gold);box-shadow:0 8px 0 var(--pink),0 14px 24px rgba(106,27,154,.25);overflow:hidden;touch-action:none;transition:transform .2s}
+.card:not(.locked):active{transform:translateY(4px)}
+.prize{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;font-weight:800;font-size:1.05rem;padding:8px;color:var(--plum)}
+.prize span{font-size:2.4rem}
+canvas{position:absolute;inset:0;width:100%;height:100%;cursor:grab}
+.card.locked{opacity:.4;pointer-events:none;filter:grayscale(.7);box-shadow:none}
+#msg{min-height:3em;font-weight:800;font-size:1.1rem;color:var(--ink);position:relative;z-index:2}
+#win{display:none;max-width:420px;margin:0 auto;background:var(--card);border-radius:22px;padding:20px;border:3px solid var(--pink);box-shadow:0 8px 0 var(--gold);position:relative;z-index:2;animation:pop .5s cubic-bezier(.2,1.6,.4,1)}
+@keyframes pop{from{transform:scale(.6);opacity:0}}
+#win h2{margin:0 0 6px;color:var(--plum);font-size:1.5rem}
+.sb{position:fixed;left:0;right:0;bottom:0;height:100%;pointer-events:none;overflow:hidden;z-index:1}
+.b{position:absolute;bottom:-140px;width:56px;height:68px;border-radius:50% 50% 48% 48%;background:radial-gradient(circle at 32% 28%,rgba(255,255,255,.75) 0 9%,transparent 11%),var(--c);animation:rise var(--d) linear infinite;animation-delay:var(--w);opacity:.9}
+.b:after{content:"";position:absolute;left:50%;top:100%;width:2px;height:60px;background:rgba(120,70,110,.5);transform:translateX(-50%)}
+.b:before{content:"";position:absolute;left:50%;top:97%;border:5px solid transparent;border-bottom:7px solid var(--c);transform:translateX(-50%)}
+@keyframes rise{to{transform:translate(var(--x),-125vh) rotate(8deg)}}
+#conf{position:fixed;inset:0;width:100%;height:100%;pointer-events:none;z-index:5}
+@media (prefers-reduced-motion:reduce){.b,.cake,.bunting i{animation:none}.b{bottom:10%}}
+</style>
+</head>
+<body>
+<div class="sb" id="sb" aria-hidden="true"></div>
+<canvas id="conf"></canvas>
+<div class="bunting" id="bunting" aria-hidden="true"></div>
+<div class="cake">🎂</div>
+<h1>Happy Birthday<br><span class="name">Khushi!</span> 🎈</h1>
+<p>You have 4 magic scratch cards. But you can scratch only ONE, so choose wisely!</p>
+<div class="grid" id="grid"></div>
+<p id="msg">Pick a card and scratch it with your finger.</p>
+<div id="win">
+  <h2>🎁 You won:<br><span id="wp"></span></h2>
+  <p>Take a screenshot of this and send it to me to claim your gift!</p>
+  <p id="stamp"></p>
+</div>
+<script>
+var COLS=["#e63e8a","#f6b93b","#7c4dff","#29b6f6","#43d17a","#ff7043"];
+// bunting
+var bt=document.getElementById("bunting");
+for(var i=0;i<24;i++){var f=document.createElement("i");f.style.setProperty("--c",COLS[i%6]);bt.appendChild(f)}
+// balloons
+var sb=document.getElementById("sb");
+for(var i=0;i<14;i++){var b=document.createElement("div");b.className="b";
+  b.style.left=(Math.random()*92)+"%";
+  b.style.setProperty("--c",COLS[i%6]);
+  b.style.setProperty("--d",(9+Math.random()*9)+"s");
+  b.style.setProperty("--w",(-Math.random()*16)+"s");
+  b.style.setProperty("--x",((Math.random()*80)-40)+"px");
+  b.style.transform="scale("+(.7+Math.random()*.7)+")";
+  sb.appendChild(b)}
+// confetti
+var cv0=document.getElementById("conf"),cx=cv0.getContext("2d"),bits=[];
+function fit(){cv0.width=innerWidth;cv0.height=innerHeight}fit();addEventListener("resize",fit);
+function boom(){for(var i=0;i<140;i++)bits.push({x:innerWidth/2,y:innerHeight*.45,vx:(Math.random()-.5)*14,vy:-Math.random()*14-3,s:5+Math.random()*7,c:COLS[i%6],r:Math.random()*6,l:130+Math.random()*60});loop()}
+var run=false;
+function loop(){if(run)return;run=true;(function t(){cx.clearRect(0,0,cv0.width,cv0.height);
+  bits=bits.filter(function(p){return p.l-->0});
+  bits.forEach(function(p){p.x+=p.vx;p.y+=p.vy;p.vy+=.35;p.vx*=.99;p.r+=.2;cx.save();cx.translate(p.x,p.y);cx.rotate(p.r);cx.fillStyle=p.c;cx.fillRect(-p.s/2,-p.s/4,p.s,p.s/2);cx.restore()});
+  if(bits.length)requestAnimationFrame(t);else run=false})()}
+// game
+var PRIZES=[["👗","1 Dress"],["💸","₹500"],["🏋️","Gym Diet Plan (1 month)"],["✈️","1 Trip with me"]];
+var KEY="khushi_bday_choice";
+function shuffle(a){for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+var saved=null;try{saved=JSON.parse(localStorage.getItem(KEY))}catch(e){}
+var order=saved&&saved.order?saved.order:shuffle([0,1,2,3]);
+var grid=document.getElementById("grid"),cards=[],done=false;
+order.forEach(function(p,i){
+  var c=document.createElement("div");c.className="card";
+  c.innerHTML='<div class="prize"><span>'+PRIZES[p][0]+'</span>'+PRIZES[p][1]+'</div><canvas></canvas>';
+  grid.appendChild(c);cards.push(c);
+  var cv=c.querySelector("canvas");
+  requestAnimationFrame(function(){init(cv,c,i,p)});
+});
+function init(cv,c,i,p){
+  var w=c.clientWidth,h=c.clientHeight,ctx=cv.getContext("2d");
+  cv.width=w;cv.height=h;
+  var g=ctx.createLinearGradient(0,0,w,h);g.addColorStop(0,"#f6b93b");g.addColorStop(.5,"#fff0a8");g.addColorStop(1,"#d89a1e");
+  ctx.fillStyle=g;ctx.fillRect(0,0,w,h);
+  ctx.fillStyle="rgba(255,255,255,.55)";
+  for(var k=0;k<14;k++){ctx.font=Math.round(w/9)+"px sans-serif";ctx.fillText("✦",(k*53)%w,((k*37)%h)+14)}
+  ctx.fillStyle="#7a4a00";ctx.font="800 "+Math.round(w/5)+"px sans-serif";ctx.textAlign="center";ctx.textBaseline="middle";
+  ctx.fillText("🎁 "+(i+1),w/2,h/2-8);ctx.font="700 "+Math.round(w/10)+"px sans-serif";ctx.fillText("scratch me",w/2,h/2+w/6);
+  if(saved&&saved.pick===i){cv.style.display="none";reveal(i,p,true);return}
+  var drawing=false;
+  function pos(e){var r=cv.getBoundingClientRect();return[(e.clientX-r.left)*w/r.width,(e.clientY-r.top)*h/r.height]}
+  function scratch(e){
+    if(!drawing)return;
+    var q=pos(e);ctx.globalCompositeOperation="destination-out";ctx.beginPath();ctx.arc(q[0],q[1],w/9,0,7);ctx.fill();
+  }
+  cv.addEventListener("pointerdown",function(e){
+    if(done&&!c.classList.contains("active"))return;
+    drawing=true;cv.setPointerCapture(e.pointerId);
+    if(!done){done=true;c.classList.add("active");
+      cards.forEach(function(o){if(o!==c)o.classList.add("locked")});
+      document.getElementById("msg").textContent="Keep scratching to reveal your gift!";
+    }
+    scratch(e);
+  });
+  cv.addEventListener("pointermove",scratch);
+  cv.addEventListener("pointerup",function(){
+    drawing=false;
+    var d=ctx.getImageData(0,0,w,h).data,n=0,t=0;
+    for(var k=3;k<d.length;k+=16){t++;if(d[k]===0)n++}
+    if(n/t>.45){cv.style.display="none";reveal(i,p,false)}
+  });
+}
+function reveal(i,p,again){
+  done=true;
+  cards.forEach(function(o,j){if(j!==i)o.classList.add("locked")});
+  try{localStorage.setItem(KEY,JSON.stringify({order:order,pick:i}))}catch(e){}
+  document.getElementById("wp").textContent=PRIZES[p][0]+" "+PRIZES[p][1];
+  document.getElementById("win").style.display="block";
+  document.getElementById("stamp").textContent="Khushi's birthday gift • "+new Date().toLocaleDateString("en-IN");
+  document.getElementById("msg").textContent=again?"You already picked your card. Here is your gift!":"🎉 Congratulations Khushi! 🎉";
+  if(!again){boom();setTimeout(boom,700);document.getElementById("win").scrollIntoView({behavior:"smooth"})}
+}
+</script>
+</body>
+</html>
